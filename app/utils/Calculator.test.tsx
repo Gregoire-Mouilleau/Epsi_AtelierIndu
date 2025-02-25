@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import Calculator from "../app/Calculator";
+import Calculator from './Calculator';
 
 test("Addition fonctionne correctement", () => {
   render(<Calculator />);
