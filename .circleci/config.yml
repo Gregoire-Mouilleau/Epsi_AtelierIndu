@@ -1,0 +1,71 @@
+version: 2.1
+orbs:
+  node: circleci/node@5
+
+jobs:
+  build:
+    executor: node/default
+    steps:
+      - checkout
+      - run: echo "Build en cours..."
+
+  tests:
+    executor: node/default
+    environment:
+      JEST_JUNIT_OUTPUT_DIR: ./test-results/
+    steps:
+      - checkout
+      - node/install-packages:
+          pkg-manager: npm
+      - run: npm install jest-junit
+      - run:
+          name: Exécution des tests
+          command: npm run test:ci
+      - store_test_results:
+          path: ./test-results/
+
+  deploy_dev:
+    executor: node/default
+    steps:
+      - checkout
+      - run: echo "Déploiement sur l'environnement DEVELOPMENT..."
+
+  deploy_integration:
+    executor: node/default
+    steps:
+      - checkout
+      - run: echo "Déploiement sur l'environnement INTEGRATION..."
+
+  deploy_prod:
+    executor: node/default
+    steps:
+      - checkout
+      - run: echo "Déploiement sur l'environnement PRODUCTION..."
+
+workflows:
+  version: 2
+
+  build-test-deploy:
+    jobs:
+      - build
+      - tests:
+          requires:
+            - build
+      - deploy_dev:
+          requires:
+            - tests
+          filters:
+            branches:
+              only: develop
+      - deploy_integration:
+          requires:
+            - tests
+          filters:
+            branches:
+              only: integration
+      - deploy_prod:
+          requires:
+            - tests
+          filters:
+            branches:
+              only: main
