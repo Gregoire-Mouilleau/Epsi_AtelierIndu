@@ -1,18 +1,21 @@
 version: 2.1
+
+# Utilisation de l'orbe Node.js fournie par CircleCI
 orbs:
   node: circleci/node@5
 
 jobs:
+  # Job de construction du projet
   build:
     executor: node/default
     steps:
-      - checkout
-      - restore_cache:
+      - checkout  # Récupération du code source
+      - restore_cache:  # Restauration du cache des dépendances si possible
           key: dependency-cache-{{ checksum "package-lock.json" }}
       - run:
           name: "Installation des dépendances"
           command: npm install
-      - save_cache:
+      - save_cache:  # Sauvegarde du cache des dépendances pour éviter une réinstallation à chaque build
           key: dependency-cache-{{ checksum "package-lock.json" }}
           paths:
             - node_modules
@@ -20,13 +23,14 @@ jobs:
           name: "Build terminé avec succès"
           command: echo "Build terminé avec succès"
 
+  # Job d'exécution des tests unitaires avec Jest
   tests:
     executor: node/default
     environment:
       JEST_JUNIT_OUTPUT_DIR: ./test-results/
     steps:
-      - checkout
-      - restore_cache:
+      - checkout  # Récupération du code source
+      - restore_cache:  # Restauration du cache des dépendances
           key: dependency-cache-{{ checksum "package-lock.json" }}
       - run:
           name: "Installation des dépendances Jest"
@@ -37,54 +41,92 @@ jobs:
       - run:
           name: "Exécution des tests unitaires"
           command: npm run test:ci
-      - store_test_results:
+      - store_test_results:  # Stockage des résultats des tests
           path: ./test-results/
-      - store_artifacts:
+      - store_artifacts:  # Stockage des artefacts des tests pour inspection
           path: ./test-results/
           destination: test-results
       - run: echo "Tests terminés avec succès"
 
+  # Job de déploiement en environnement de développement
   deploy_dev:
     executor: node/default
     steps:
       - checkout
       - run: echo "Déploiement sur l'environnement **DEVELOPMENT** en cours..."
 
+  # Job de déploiement en environnement d'intégration
   deploy_integration:
     executor: node/default
     steps:
       - checkout
       - run: echo "Déploiement sur l'environnement **INTEGRATION** en cours..."
 
+  # Job de déploiement en production
   deploy_prod:
     executor: node/default
     steps:
       - checkout
       - run: echo "Déploiement sur l'environnement **PRODUCTION** en cours..."
 
+  # Job de déploiement temporaire pour une feature
+  deploy_feature:
+    executor: node/default
+    steps:
+      - checkout
+      - run: echo "Déploiement temporaire pour une **FEATURE** en cours..."
+
+  # Job de déploiement temporaire pour un hotfix
+  deploy_hotfix:
+    executor: node/default
+    steps:
+      - checkout
+      - run: echo "Déploiement temporaire pour un **HOTFIX** en cours..."
+
+# Définition des workflows pour l'automatisation des jobs
 workflows:
   version: 2
   build-test-deploy:
     jobs:
-      - build
-      - tests:
+      - build  # Lancement du job de build
+      - tests:  # Lancement des tests après la compilation
           requires:
             - build
-      - deploy_dev:
+          filters:
+            branches:
+              only:
+                - develop
+                - integration
+                - main
+                - /^feature\/.*/  # Exécuter les tests pour toutes les branches feature/*
+                - /^hotfix\/.*/  # Exécuter les tests pour toutes les branches hotfix/*
+      - deploy_dev:  # Déploiement automatique en développement après les tests
           requires:
             - tests
           filters:
             branches:
               only: develop
-      - deploy_integration:
+      - deploy_integration:  # Déploiement automatique en intégration après les tests
           requires:
             - tests
           filters:
             branches:
               only: integration
-      - deploy_prod:
+      - deploy_prod:  # Déploiement automatique en production après les tests
           requires:
             - tests
           filters:
             branches:
               only: main
+      - deploy_feature:  # Déploiement automatique pour une feature après les tests
+          requires:
+            - tests
+          filters:
+            branches:
+              only: /^feature\/.*/
+      - deploy_hotfix:  # Déploiement automatique pour un hotfix après les tests
+          requires:
+            - tests
+          filters:
+            branches:
+              only: /^hotfix\/.*/
