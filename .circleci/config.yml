@@ -7,7 +7,15 @@ jobs:
     executor: node/default
     steps:
       - checkout
-      - run: echo "Build en cours..."
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package-lock.json" }}
+      - node/install-packages:
+          pkg-manager: npm
+      - save_cache:
+          key: dependency-cache-{{ checksum "package-lock.json" }}
+          paths:
+            - node_modules
+      - run: echo "Build terminé avec succès"
 
   tests:
     executor: node/default
@@ -15,32 +23,38 @@ jobs:
       JEST_JUNIT_OUTPUT_DIR: ./test-results/
     steps:
       - checkout
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package-lock.json" }}
       - node/install-packages:
           pkg-manager: npm
       - run: npm install jest-junit
       - run:
-          name: Exécution des tests
+          name: "🎯 Exécution des tests unitaires"
           command: npm run test:ci
       - store_test_results:
           path: ./test-results/
+      - store_artifacts:
+          path: ./test-results/
+          destination: test-results
+      - run: echo "Tests terminés avec succès"
 
   deploy_dev:
     executor: node/default
     steps:
       - checkout
-      - run: echo "Déploiement sur l'environnement DEVELOPMENT..."
+      - run: echo "Déploiement sur l'environnement **DEVELOPMENT** en cours..."
 
   deploy_integration:
     executor: node/default
     steps:
       - checkout
-      - run: echo "Déploiement sur l'environnement INTEGRATION..."
+      - run: echo "Déploiement sur l'environnement **INTEGRATION** en cours..."
 
   deploy_prod:
     executor: node/default
     steps:
       - checkout
-      - run: echo "Déploiement sur l'environnement PRODUCTION..."
+      - run: echo "Déploiement sur l'environnement **PRODUCTION** en cours..."
 
 workflows:
   version: 2
