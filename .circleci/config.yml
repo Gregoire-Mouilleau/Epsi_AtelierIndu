@@ -9,9 +9,9 @@ jobs:
       - checkout
       - restore_cache:
           key: dependency-cache-{{ checksum "with-jest-app/package-lock.json" }}
-      - node/install-packages:
-          pkg-manager: npm
-          path: with-jest-app
+      - run:
+          name: "Installation des dépendances"
+          command: cd with-jest-app && npm install
       - save_cache:
           key: dependency-cache-{{ checksum "with-jest-app/package-lock.json" }}
           paths:
@@ -28,9 +28,6 @@ jobs:
       - checkout
       - restore_cache:
           key: dependency-cache-{{ checksum "with-jest-app/package-lock.json" }}
-      - node/install-packages:
-          pkg-manager: npm
-          path: with-jest-app
       - run:
           name: "Installation des dépendances Jest"
           command: cd with-jest-app && npm install jest-junit
