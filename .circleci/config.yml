@@ -8,14 +8,14 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: dependency-cache-{{ checksum "with-jest-app/package-lock.json" }}
+          key: dependency-cache-{{ checksum "package-lock.json" }}
       - run:
           name: "Installation des dépendances"
-          command: cd with-jest-app && npm install
+          command: npm install
       - save_cache:
-          key: dependency-cache-{{ checksum "with-jest-app/package-lock.json" }}
+          key: dependency-cache-{{ checksum "package-lock.json" }}
           paths:
-            - with-jest-app/node_modules
+            - node_modules
       - run:
           name: "Build terminé avec succès"
           command: echo "Build terminé avec succès"
@@ -27,20 +27,20 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: dependency-cache-{{ checksum "with-jest-app/package-lock.json" }}
+          key: dependency-cache-{{ checksum "package-lock.json" }}
       - run:
           name: "Installation des dépendances Jest"
-          command: cd with-jest-app && npm install jest-junit
+          command: npm install jest-junit
       - run:
           name: "Vérification de Jest"
-          command: cd with-jest-app && npm list jest || npm install -g jest
+          command: npm list jest || npm install -g jest
       - run:
           name: "Exécution des tests unitaires"
-          command: cd with-jest-app && npm run test:ci
+          command: npm run test:ci
       - store_test_results:
-          path: with-jest-app/test-results/
+          path: ./test-results/
       - store_artifacts:
-          path: with-jest-app/test-results/
+          path: ./test-results/
           destination: test-results
       - run: echo "Tests terminés avec succès"
 
