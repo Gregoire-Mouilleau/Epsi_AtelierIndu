@@ -28,8 +28,9 @@ jobs:
       - node/install-packages:
           pkg-manager: npm
       - run: npm install jest-junit
+      - run: npm list jest || npm install -g jest  # Vérification de Jest
       - run:
-          name: "🎯 Exécution des tests unitaires"
+          name: "Exécution des tests unitaires"
           command: npm run test:ci
       - store_test_results:
           path: ./test-results/
